@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-// import Navbar from '../components/Navbar';
-// import Footer from '../components/Footer';
+import './quill-custom.css'; // ✅ Import custom styles for editor
 
 const TAG_OPTIONS = ['React', 'JWT', 'JavaScript', 'Node.js', 'CSS', 'HTML'];
 
@@ -20,42 +19,39 @@ const Ask = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
+    e.preventDefault();
 
-  try {
+    try {
+      const res = await fetch('http://localhost:5050/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, description, tags }),
+      });
 
-    const res = await fetch('http://localhost:5050/api/questions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ title, description, tags }),
-})
+      const data = await res.json();
 
-    const data = await res.json()
-
-    if (res.ok) {
-      alert('✅ Question submitted!')
-      console.log(data)
-      // Optionally clear form
-      setTitle('')
-      setDescription('')
-      setTags([])
-    } else {
-      alert('❌ Submission failed: ' + data.error)
+      if (res.ok) {
+        alert('✅ Question submitted!');
+        console.log(data);
+        // Optionally clear form
+        setTitle('');
+        setDescription('');
+        setTags([]);
+      } else {
+        alert('❌ Submission failed: ' + data.error);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('❌ Something went wrong!');
     }
-  } catch (err) {
-    console.error('Error:', err)
-    alert('❌ Something went wrong!')
-  }
-}
-
+  };
 
   return (
     <>
-      {/* <Navbar /> */}
       <div style={styles.spacer} />
-      <div className='pt-36' style={styles.container}>
+      <div className="pt-36" style={styles.container}>
         <h2 style={styles.heading}>📝 Ask a Question</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           {/* Title */}
@@ -111,8 +107,6 @@ const Ask = () => {
           </button>
         </form>
       </div>
-      {/* </div> */}
-      {/* <Footer /> */}
     </>
   );
 };
@@ -122,7 +116,7 @@ export default Ask;
 // 🎨 Styles
 const styles = {
   spacer: {
-    height: '80px', // Space for fixed navbar
+    height: '80px',
   },
   container: {
     maxWidth: '800px',
@@ -159,6 +153,7 @@ const styles = {
     fontSize: '16px',
     borderRadius: '8px',
     border: '1px solid #ccc',
+    color: '#000', // ✅ Black text
   },
   quillWrapper: {
     marginTop: '4px',
