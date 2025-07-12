@@ -19,11 +19,37 @@ const Ask = () => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({ title, description, tags });
-    // Backend submission logic here
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+
+  try {
+
+    const res = await fetch('http://localhost:5050/api/questions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ title, description, tags }),
+})
+
+    const data = await res.json()
+
+    if (res.ok) {
+      alert('✅ Question submitted!')
+      console.log(data)
+      // Optionally clear form
+      setTitle('')
+      setDescription('')
+      setTags([])
+    } else {
+      alert('❌ Submission failed: ' + data.error)
+    }
+  } catch (err) {
+    console.error('Error:', err)
+    alert('❌ Something went wrong!')
+  }
+}
+
 
   return (
     <>
