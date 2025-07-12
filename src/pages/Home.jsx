@@ -37,9 +37,6 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 text-white px-2 sm:px-8 py-6 pt-36">
       {/* Actions Row */}
       <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
-        <button className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded">
-          Ask New question
-        </button>
         <div className="flex gap-2">
           <select
             className="bg-gray-800 border-none text-white px-3 py-2 rounded"
