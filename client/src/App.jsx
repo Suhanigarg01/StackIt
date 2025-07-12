@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Ask from './pages/Ask'
 import Question from './pages/Question'
 import { Routes, Route } from 'react-router-dom'
+import QuestionDetail from './pages/QuestionDetail'
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
       <Routes>
         <Route path='/' element={<Home/>} />
         <Route path='/ask-question' element={<Ask/>} />
-        <Route path='/question/:id' element={<Question/>} />
+        <Route path='/questions/:id' element={<QuestionDetail/>} />
       </Routes>
       <Footer />
       

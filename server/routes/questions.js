@@ -1,6 +1,7 @@
 // server/routes/questions.js
 import express from 'express'
 import Question from '../models/Question.js'
+import Answer from '../models/Answers.js'
 
 const router = express.Router()
 
@@ -24,5 +25,21 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch questions' })
   }
 })
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const question = await Question.findById(id)
+    if (!question) {
+      return res.status(404).json({ error: 'Question not found' })
+    }
 
+    // Optional: Include answers if you have a separate Answer model
+    const answers = await Answer.find({ questionId: id }).sort({ createdAt: -1 })
+
+    res.status(200).json({ question, answers })
+  } catch (error) {
+    console.error("Error in GET /:id", error)
+    res.status(500).json({ error: 'Failed to fetch question' })
+  }
+})
 export default router

@@ -4,6 +4,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import connectDB from './db.js'
 import questionRoutes from './routes/questions.js'
+import answerRoutes from './routes/answer.js'
 
 dotenv.config()
 
@@ -22,6 +23,8 @@ connectDB()
 
 // Routes
 app.use('/api/questions', questionRoutes)
+
+app.use('/api/answers', answerRoutes)
 
 const PORT = process.env.PORT || 5050
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`))
