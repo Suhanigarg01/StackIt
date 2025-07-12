@@ -42,4 +42,24 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch question' })
   }
 })
+router.get('/admin/all', async (req, res) => {
+  try {
+    const questions = await Question.find().sort({ createdAt: -1 })
+    res.json({ questions })
+  } catch (err) {
+    console.error('Error fetching admin questions:', err)
+    res.status(500).json({ message: 'Failed to fetch questions' })
+  }
+})
+
+// Delete question by ID
+router.delete('/admin/:id', async (req, res) => {
+  try {
+    await Question.findByIdAndDelete(req.params.id)
+    res.status(200).json({ message: 'Question deleted' })
+  } catch (err) {
+    console.error('Error deleting question:', err)
+    res.status(500).json({ message: 'Failed to delete question' })
+  }
+})
 export default router
