@@ -1,39 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"
 
-const dummyQuestions = [
-  {
-    id: 1,
-    title: "How to join 2 columns in a data set to make a separate column in SQL",
-    description:
-      "I do not know the code for it as I am a beginner. As an example what I need to do is like there is a column 1 containing First name and column 2 consists of last name I want a column to combine ...",
-    tags: ["SQL", "Beginner"],
-    user: "User Name",
-    answers: 5,
-  },
-  {
-    id: 2,
-    title: "How to create a responsive navbar in React?",
-    description: "Looking for best practices to create a responsive navbar using React and Tailwind CSS.",
-    tags: ["React", "Tailwind"],
-    user: "Jane Doe",
-    answers: 3,
-  },
-  // Add more dummy questions as needed
-];
-
-const totalPages = 7;
+const totalPages = 7
 
 export default function Home() {
-  const [questions, setQuestions] = useState(dummyQuestions);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filter, setFilter] = useState("Newest");
-  const [search, setSearch] = useState("");
+  const [questions, setQuestions] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [filter, setFilter] = useState("Newest")
+  const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
 
-  // Placeholder for fetching questions from backend
-  // useEffect(() => {
-  //   fetchQuestions();
-  // }, [currentPage, filter, search]);
-    return(
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch("http://localhost:5050/api/questions")
+        const data = await res.json()
+        setQuestions(data)
+        setLoading(false)
+      } catch (err) {
+        console.error("Failed to fetch questions:", err)
+        setLoading(false)
+      }
+    }
+
+    fetchQuestions()
+  }, [])
+
+  const filteredQuestions = questions.filter(q =>
+    q.title.toLowerCase().includes(search.toLowerCase()) ||
+    q.description.toLowerCase().includes(search.toLowerCase()) ||
+    q.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  return (
     <div className="min-h-screen bg-gray-900 text-white px-2 sm:px-8 py-6 pt-36">
       {/* Actions Row */}
       <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
@@ -66,25 +65,44 @@ export default function Home() {
       </div>
 
       {/* Questions List */}
-      <div className="space-y-6">
-        {questions.map((q) => (
-          <div key={q.id} className="bg-gray-800 rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold mb-2">{q.title}</h2>
-              <div className="flex gap-2 mb-2">
-                {q.tags.map((tag, i) => (
-                  <span key={i} className="bg-gray-700 text-xs px-2 py-1 rounded">{tag}</span>
-                ))}
+      {loading ? (
+        <p className="text-center text-gray-400">Loading questions...</p>
+      ) : filteredQuestions.length === 0 ? (
+        <p className="text-center text-gray-400">No questions found.</p>
+      ) : (
+        <div className="space-y-6">
+          {filteredQuestions.map((q) => (
+            <div
+              key={q._id}
+              className="bg-gray-800 rounded-lg p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between"
+            >
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold mb-2">{q.title}</h2>
+                <div className="flex gap-2 mb-2">
+                  {q.tags.map((tag, i) => (
+                    <span key={i} className="bg-gray-700 text-xs px-2 py-1 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-gray-300 text-sm mb-2">
+                  {q.description.length > 200
+                    ? q.description.slice(0, 200) + "..."
+                    : q.description}
+                </p>
+                <span className="text-gray-400 text-xs">
+                  by {q.user || "Anonymous"}
+                </span>
               </div>
-              <p className="text-gray-300 text-sm mb-2">{q.description}</p>
-              <span className="text-gray-400 text-xs">by {q.user}</span>
+              <div className="mt-4 sm:mt-0 sm:ml-6 flex items-center">
+                <span className="bg-blue-600 px-3 py-1 rounded text-white font-bold">
+                  {q.answers ? q.answers.length : 0} ans
+                </span>
+              </div>
             </div>
-            <div className="mt-4 sm:mt-0 sm:ml-6 flex items-center">
-              <span className="bg-blue-600 px-3 py-1 rounded text-white font-bold">{q.answers} ans</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex justify-center items-center mt-8 space-x-2">
@@ -98,7 +116,10 @@ export default function Home() {
         {[...Array(totalPages)].map((_, i) => (
           <button
             key={i}
-            className={`px-3 py-1 rounded ${currentPage === i + 1 ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-300"}`}
+            className={`px-3 py-1 rounded ${currentPage === i + 1
+              ? "bg-blue-600 text-white"
+              : "bg-gray-800 text-gray-300"
+              }`}
             onClick={() => setCurrentPage(i + 1)}
           >
             {i + 1}
@@ -113,5 +134,5 @@ export default function Home() {
         </button>
       </div>
     </div>
-  );
+  )
 }

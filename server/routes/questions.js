@@ -16,4 +16,13 @@ router.post('/', async (req, res) => {
   }
 })
 
+router.get('/', async (req, res) => {
+  try {
+    const questions = await Question.find().sort({ createdAt: -1 }) // Newest first
+    res.status(200).json(questions)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch questions' })
+  }
+})
+
 export default router
