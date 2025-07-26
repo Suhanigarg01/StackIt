@@ -34,6 +34,10 @@ app.use(clerkMiddleware({
 // DB
 connectDB();
 
+app.get("/", (req, res) => {
+  res.send("Backend is live 🚀");
+});
+
 // Public routes (no auth required)
 app.use('/api/questions', questionRoutes);
 
