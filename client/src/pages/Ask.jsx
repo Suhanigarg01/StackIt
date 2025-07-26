@@ -28,7 +28,7 @@ const Ask = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5050/api/questions', {
+      const res = await fetch('https://stackit-rd4u.onrender.com/api/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, tags }),

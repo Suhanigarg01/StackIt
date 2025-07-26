@@ -15,7 +15,7 @@ export default function QuestionDetail() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:5050/api/questions/${id}`);
+        const res = await fetch(`https://stackit-rd4u.onrender.com/api/questions/${id}`);
         const data = await res.json();
         setQuestion(data.question);
         setAnswers(data.answers);
@@ -39,7 +39,7 @@ export default function QuestionDetail() {
 
     try {
       const token = await getToken();
-      const res = await fetch('http://localhost:5050/api/answers', {
+      const res = await fetch('https://stackit-rd4u.onrender.com/api/answers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export default function QuestionDetail() {
     try {
       const token = await getToken();
       const res = await fetch(
-        `http://localhost:5050/api/answers/${answerId}/${type}`,
+        `https://stackit-rd4u.onrender.com/api/answers/${answerId}/${type}`,
         {
           method: 'POST',
           headers: {

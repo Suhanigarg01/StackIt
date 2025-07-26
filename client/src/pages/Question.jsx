@@ -9,7 +9,7 @@ export default function Question() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await fetch("http://localhost:5050/api/questions");
+        const res = await fetch("https://stackit-rd4u.onrender.com/api/questions"); // ← Replace with your deployed backend URL
         const data = await res.json();
         setQuestions(data);
       } catch (err) {
@@ -19,6 +19,23 @@ export default function Question() {
 
     fetchQuestions();
   }, []);
+
+  // 🔍 Apply search and filter logic
+  const filteredQuestions = questions
+    .filter((q) => {
+      const matchesSearch = q.title.toLowerCase().includes(search.toLowerCase());
+
+      if (filter === "Unanswered") return q.status === "unanswered" && matchesSearch;
+      if (filter === "Most Answered") return q.answers?.length > 0 && matchesSearch;
+
+      return matchesSearch; // For "Newest" and default
+    })
+    .sort((a, b) => {
+      if (filter === "Newest") {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-black text-white px-4 sm:px-8 py-6 pt-36">
@@ -54,41 +71,45 @@ export default function Question() {
 
       {/* Questions Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {questions.map((q) => (
-          <Link to={`/questions/${q._id}`} key={q._id}>
-            <div className="group bg-[#121212] hover:bg-[#1e1e1e] border border-gray-800 rounded-xl p-5 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg">
-              <h2 className="text-lg font-semibold mb-2 text-white group-hover:text-blue-400 transition">
-                {q.title}
-              </h2>
+        {filteredQuestions.length === 0 ? (
+          <p className="text-gray-400 col-span-full text-center">No questions found.</p>
+        ) : (
+          filteredQuestions.map((q) => (
+            <Link to={`/questions/${q._id}`} key={q._id}>
+              <div className="group bg-[#121212] hover:bg-[#1e1e1e] border border-gray-800 rounded-xl p-5 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-lg">
+                <h2 className="text-lg font-semibold mb-2 text-white group-hover:text-blue-400 transition">
+                  {q.title}
+                </h2>
 
-              <div className="flex flex-wrap gap-2 mb-3">
-                {q.tags.map((tag, i) => (
-                  <span
-                    key={i}
-                    className="bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {q.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-700 text-gray-200 text-xs px-2 py-1 rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <p
+                  className="text-gray-400 text-sm mb-3 line-clamp-3"
+                  dangerouslySetInnerHTML={{ __html: q.description }}
+                ></p>
+
+                <span
+                  className={`text-xs font-medium ${
+                    q.status === "unanswered"
+                      ? "text-red-400"
+                      : "text-green-400"
+                  }`}
+                >
+                  Status: {q.status}
+                </span>
               </div>
-
-              <p
-                className="text-gray-400 text-sm mb-3 line-clamp-3"
-                dangerouslySetInnerHTML={{ __html: q.description }}
-              ></p>
-
-              <span
-                className={`text-xs font-medium ${
-                  q.status === "unanswered"
-                    ? "text-red-400"
-                    : "text-green-400"
-                }`}
-              >
-                Status: {q.status}
-              </span>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))
+        )}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ export default function AdminPage() {
   const [questions, setQuestions] = useState([])
 
   useEffect(() => {
-    fetch('http://localhost:5050/api/questions/admin/all')
+    fetch('https://stackit-rd4u.onrender.com/api/questions/admin/all')
       .then(res => res.json())
       .then(data => setQuestions(data.questions))
       .catch(err => console.error('Failed to load questions:', err))
@@ -14,7 +14,7 @@ export default function AdminPage() {
     if (!window.confirm('Are you sure you want to delete this question?')) return
 
     try {
-      const res = await fetch(`http://localhost:5050/api/questions/admin/${id}`, {
+      const res = await fetch(`https://stackit-rd4u.onrender.com/api/questions/admin/${id}`, {
         method: 'DELETE'
       })
 
