@@ -1,58 +1,92 @@
-// server/routes/answers.js
-import express from 'express'
-import Answer from '../models/Answers.js'
+// server/routes/answer.js
+import express from 'express';
+import Answer from '../models/Answers.js';
+import Question from '../models/Question.js'; // if you update question status
 
-const router = express.Router()
+const router = express.Router();
 
-// Submit a new answer
+/* ------------------ Create Answer ------------------ */
 router.post('/', async (req, res) => {
   try {
-    const { content, questionId, userId } = req.body
+    const { userId } = req.auth();              // from Clerk
+    const { content, questionId } = req.body;
 
-    if (!content || !questionId || !userId) {
-      return res.status(400).json({ error: 'Missing required fields' })
+    if (!content || !questionId) {
+      return res.status(400).json({ error: 'content and questionId are required' });
     }
 
-    const answer = new Answer({ content, questionId, userId })
-    await answer.save()
+    const answer = await Answer.create({ content, questionId, userId });
 
-    res.status(201).json({ message: 'Answer posted successfully', answer })
-  } catch (error) {
-    console.error('Error posting answer:', error)
-    res.status(500).json({ error: 'Failed to post answer' })
+    // optional: mark question answered
+    await Question.findByIdAndUpdate(questionId, { status: 'Answered' }).catch(() => {});
+
+    res.status(201).json({ message: 'Answer created', answer });
+  } catch (err) {
+    console.error('Error creating answer:', err);
+    res.status(500).json({ error: 'Failed to submit answer' });
   }
-})
+});
 
-// Upvote an answer
+/* ------------------ Upvote Toggle ------------------ */
 router.post('/:id/upvote', async (req, res) => {
   try {
-    const answer = await Answer.findById(req.params.id)
-    if (!answer) return res.status(404).json({ error: 'Answer not found' })
+    const { userId } = req.auth();
+    const answer = await Answer.findById(req.params.id);
+    if (!answer) return res.status(404).json({ error: 'Answer not found' });
 
-    answer.upvotes += 1
-    await answer.save()
+    const alreadyUp = answer.upvotedBy.includes(userId);
+    const alreadyDown = answer.downvotedBy.includes(userId);
 
-    res.status(200).json({ message: 'Upvoted', upvotes: answer.upvotes })
-  } catch (error) {
-    console.error('Error upvoting:', error)
-    res.status(500).json({ error: 'Failed to upvote' })
+    if (alreadyUp) {
+      answer.upvotedBy.pull(userId);
+    } else {
+      answer.upvotedBy.addToSet(userId);
+      if (alreadyDown) answer.downvotedBy.pull(userId);
+    }
+
+    await answer.save();
+
+    res.json({
+      message: alreadyUp ? 'Upvote removed' : 'Upvoted',
+      upvotes: answer.upvotedBy.length,
+      downvotes: answer.downvotedBy.length,
+      userVote: alreadyUp ? null : 'up',
+    });
+  } catch (err) {
+    console.error('Error upvoting:', err);
+    res.status(500).json({ error: 'Failed to upvote' });
   }
-})
+});
 
-// Downvote an answer
+/* ------------------ Downvote Toggle ------------------ */
 router.post('/:id/downvote', async (req, res) => {
   try {
-    const answer = await Answer.findById(req.params.id)
-    if (!answer) return res.status(404).json({ error: 'Answer not found' })
+    const { userId } = req.auth();
+    const answer = await Answer.findById(req.params.id);
+    if (!answer) return res.status(404).json({ error: 'Answer not found' });
 
-    answer.downvotes += 1
-    await answer.save()
+    const alreadyDown = answer.downvotedBy.includes(userId);
+    const alreadyUp = answer.upvotedBy.includes(userId);
 
-    res.status(200).json({ message: 'Downvoted', downvotes: answer.downvotes })
-  } catch (error) {
-    console.error('Error downvoting:', error)
-    res.status(500).json({ error: 'Failed to downvote' })
+    if (alreadyDown) {
+      answer.downvotedBy.pull(userId);
+    } else {
+      answer.downvotedBy.addToSet(userId);
+      if (alreadyUp) answer.upvotedBy.pull(userId);
+    }
+
+    await answer.save();
+
+    res.json({
+      message: alreadyDown ? 'Downvote removed' : 'Downvoted',
+      upvotes: answer.upvotedBy.length,
+      downvotes: answer.downvotedBy.length,
+      userVote: alreadyDown ? null : 'down',
+    });
+  } catch (err) {
+    console.error('Error downvoting:', err);
+    res.status(500).json({ error: 'Failed to downvote' });
   }
-})
+});
 
-export default router
+export default router;

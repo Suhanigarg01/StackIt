@@ -1,32 +1,54 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer style={styles.footer}>
-      <div style={styles.container}>
-        <p style={styles.text}>© {new Date().getFullYear()} StackIt. All rights reserved.</p>
+    <footer className="bg-black text-gray-400 px-6 py-10 border-t border-gray-800">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+        {/* Logo or App Name */}
+        <div>
+          <h1 className="text-white text-2xl font-bold mb-2">StackIt</h1>
+          <p className="text-sm">Ask, learn, and share knowledge freely.</p>
+        </div>
+
+        {/* Navigation Links */}
+        <div>
+          <h2 className="text-white text-sm font-semibold mb-3">Navigation</h2>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/" className="hover:text-white">Home</Link></li>
+            <li><Link to="/questions" className="hover:text-white">Questions</Link></li>
+            <li><Link to="/ask-question" className="hover:text-white">Ask Question</Link></li>
+          </ul>
+        </div>
+
+        {/* About */}
+        <div>
+          <h2 className="text-white text-sm font-semibold mb-3">About</h2>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-white">Our Mission</a></li>
+            <li><a href="#" className="hover:text-white">Team</a></li>
+            <li><a href="#" className="hover:text-white">Careers</a></li>
+          </ul>
+        </div>
+
+        {/* Social or Contact */}
+        <div>
+          <h2 className="text-white text-sm font-semibold mb-3">Connect</h2>
+          <ul className="space-y-2 text-sm">
+            <li><a href="mailto:hello@stackit.com" className="hover:text-white">Email Us</a></li>
+            <li><a href="#" className="hover:text-white">Twitter</a></li>
+            <li><a href="#" className="hover:text-white">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Bottom */}
+      <div className="text-center text-xs text-gray-500 mt-10">
+        © {new Date().getFullYear()} StackIt. All rights reserved.
       </div>
     </footer>
   );
 };
 
 export default Footer;
-
-const styles = {
-  footer: {
-    marginTop: '0',
-    padding: '20px 0',
-    backgroundColor: '#000', // black background
-    borderTop: '1px solid #222', // subtle border if needed
-  },
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 20px',
-    textAlign: 'center',
-  },
-  text: {
-    color: '#fff', // white text
-    fontSize: '14px',
-  },
-};

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-import './quill-custom.css'; // ✅ Import custom styles for editor
+import './quill-custom.css'; // if needed for custom styles
 
 const TAG_OPTIONS = ['React', 'JWT', 'JavaScript', 'Node.js', 'CSS', 'HTML'];
 
@@ -9,33 +7,36 @@ const Ask = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState([]);
+  const [customTag, setCustomTag] = useState('');
+  const [showTagInput, setShowTagInput] = useState(false);
 
   const toggleTag = (tag) => {
-    if (tags.includes(tag)) {
-      setTags(tags.filter((t) => t !== tag));
-    } else {
-      setTags([...tags, tag]);
+    setTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const handleCustomTagAdd = () => {
+    const trimmed = customTag.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
     }
+    setCustomTag('');
+    setShowTagInput(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const res = await fetch('http://localhost:5050/api/questions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, tags }),
       });
 
       const data = await res.json();
-
       if (res.ok) {
         alert('✅ Question submitted!');
-        console.log(data);
-        // Optionally clear form
         setTitle('');
         setDescription('');
         setTags([]);
@@ -49,143 +50,108 @@ const Ask = () => {
   };
 
   return (
-    <>
-      <div style={styles.spacer} />
-      <div className="pt-36" style={styles.container}>
-        <h2 style={styles.heading}>📝 Ask a Question</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Title */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. How to use React hooks?"
-              required
-              style={styles.input}
-            />
-          </div>
+    <div className="min-h-screen bg-black text-white flex justify-center items-start pt-40 pb-16 px-4">
+      <div className="w-full max-w-3xl bg-[#121212] rounded-3xl shadow-[8px_8px_25px_rgba(255,255,255,0.07)] p-10 transition duration-300 hover:shadow-[10px_10px_30px_rgba(255,255,255,0.1)]">
+        
+        <h2 className="text-3xl font-bold mb-10 text-center text-blue-400">
+          Ask a Question
+        </h2>
 
-          {/* Description */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Description</label>
-            <div style={styles.quillWrapper}>
-              <ReactQuill
-                value={description}
-                onChange={setDescription}
-                placeholder="Enter a detailed explanation of your question..."
-                style={styles.quill}
-              />
-            </div>
-          </div>
+        {/* Title */}
+        <div className="mb-8">
+          <label className="block text-lg font-medium mb-2">Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. How to center a div in Flexbox?"
+            className="w-full px-4 py-3 bg-[#1f1f1f] text-white border border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-          {/* Tags */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Tags</label>
-            <div style={styles.tagContainer}>
-              {TAG_OPTIONS.map((tag) => (
-                <button
-                  type="button"
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  style={{
-                    ...styles.tagButton,
-                    backgroundColor: tags.includes(tag) ? '#007bff' : '#f0f0f0',
-                    color: tags.includes(tag) ? '#fff' : '#333',
-                  }}
+        {/* Description */}
+        <div className="mb-8">
+          <label className="block text-lg font-medium mb-2">Description</label>
+          <div className="h-60 bg-[#1f1f1f] text-white border border-gray-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your problem in detail..."
+              className="w-full h-full bg-transparent p-4 resize-none focus:outline-none"
+            ></textarea>
+          </div>
+        </div>
+
+        {/* Tags */}
+        <div className="mb-10">
+          <label className="block text-lg font-medium mb-3">Tags</label>
+          <div className="flex flex-wrap gap-3 items-center">
+            {TAG_OPTIONS.map((tag) => (
+              <span
+                key={tag}
+                onClick={() => toggleTag(tag)}
+                className={`px-4 py-2 rounded-full text-sm cursor-pointer border transition transform hover:scale-105 ${
+                  tags.includes(tag)
+                    ? 'bg-blue-600 border-blue-400 text-white'
+                    : 'bg-[#1f1f1f] border-gray-600 text-gray-300 hover:bg-blue-700'
+                }`}
+              >
+                {tag}
+              </span>
+            ))}
+
+            {/* Custom Tags */}
+            {tags
+              .filter((tag) => !TAG_OPTIONS.includes(tag))
+              .map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm border border-blue-500"
                 >
                   {tag}
-                </button>
+                </span>
               ))}
-            </div>
-          </div>
 
-          {/* Submit */}
-          <button type="submit" style={styles.submitButton}>
+            {/* Add Custom Tag Input */}
+            {showTagInput ? (
+              <input
+                autoFocus
+                type="text"
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                onBlur={handleCustomTagAdd}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCustomTagAdd();
+                  }
+                }}
+                className="px-3 py-2 rounded-full text-sm bg-[#1f1f1f] border border-blue-500 focus:outline-none text-white w-36"
+                placeholder="Add tag"
+              />
+            ) : (
+              <button
+                onClick={() => setShowTagInput(true)}
+                className="bg-[#1f1f1f] text-blue-400 px-4 py-2 rounded-full text-lg border border-blue-600 hover:bg-blue-700 hover:text-white transition"
+              >
+                +
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Submit */}
+        <div className="text-center">
+          <button
+            onClick={handleSubmit}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-full text-lg transition-all hover:scale-105"
+          >
             Submit Question
           </button>
-        </form>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
 export default Ask;
-
-// 🎨 Styles
-const styles = {
-  spacer: {
-    height: '80px',
-  },
-  container: {
-    maxWidth: '800px',
-    margin: '40px auto',
-    padding: '30px',
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-  },
-  heading: {
-    marginBottom: '24px',
-    fontSize: '28px',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  formGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  label: {
-    marginBottom: '8px',
-    fontWeight: '600',
-    fontSize: '16px',
-    color: '#333',
-  },
-  input: {
-    padding: '10px 12px',
-    fontSize: '16px',
-    borderRadius: '8px',
-    border: '1px solid #ccc',
-    color: '#000', // ✅ Black text
-  },
-  quillWrapper: {
-    marginTop: '4px',
-    marginBottom: '24px',
-  },
-  quill: {
-    height: '150px',
-  },
-  tagContainer: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '10px',
-    marginTop: '8px',
-  },
-  tagButton: {
-    padding: '8px 14px',
-    borderRadius: '20px',
-    border: '1px solid #ccc',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'all 0.2s ease-in-out',
-  },
-  submitButton: {
-    padding: '12px 20px',
-    backgroundColor: '#007bff',
-    color: '#fff',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    marginTop: '16px',
-    transition: 'background-color 0.3s',
-  },
-};

@@ -1,64 +1,89 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { MenuIcon, SearchIcon, TicketPlus, XIcon } from 'lucide-react'
-import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
-import logo from '../assets/logo.png'
-// import { useAppContext } from '../context/AppContext'
+'use client';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MenuIcon, XIcon } from 'lucide-react';
+import { useClerk, UserButton, useUser } from '@clerk/clerk-react';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
-    const [isOpen, setIsOpen] = useState(false)
-    const {user} = useUser()
-    const {openSignIn} = useClerk()
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
+  const navigate = useNavigate();
 
-    const navigate = useNavigate()
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    
   return (
+    <div className="fixed top-0 left-0 z-50 w-full px-6 md:px-16 lg:px-36 py-4 bg-black/40 backdrop-blur-md border-b border-white/10 shadow-md">
+  <div className="w-full flex items-center justify-between">
     
-    <div className='fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5'>
-      <Link to='/' className='max-md:flex-1'>
-        <img src={logo} alt="" className='w-36 h-20'/>
-      </Link>
+    {/* Left: Logo */}
+    <Link to="/" className="flex-shrink-0">
+      <img src={logo} alt="Logo" className="h-24 object-scale-down transition-transform duration-300 hover:scale-105" />
+    </Link>
 
-      <div className={`max-md:absolute max-md:top-0 max-md:left-0 font-medium text-lg z-50 flex flex-col md:flex-row items-center max-md:justify-center gap-8 md:px-8 py-3 max-md:h-screen md:rounded-full backdrop-blur bg-black/70 md:bg-white/10 md:border border-gray-300/20 overflow-hidden transition-all duration-300 ${isOpen ? 'max-md:w-full' : 'max-md:w-0'}`}>
-
-  <XIcon className='md:hidden absolute top-6 right-6 w-6 h-6 cursor-pointer text-white' onClick={() => setIsOpen(!isOpen)} />
-
+    {/* Center: Nav Links (use hidden on mobile) */}
+    <div className="hidden md:flex gap-8 text-white font-medium items-center justify-center">
   <Link
-    onClick={() => { scrollTo(0, 0); setIsOpen(false) }}
-    to='/'
-    className='text-white hover:bg-white/20 px-4 py-2 rounded-full transition'
+    to="/"
+    className={`transition-transform group hover:scale-105 ${
+      location.pathname === '/' ? 'text-blue-400 font-bold' : 'hover:text-blue-400'
+    }`}
   >
     Home
   </Link>
-
   <Link
-    onClick={() => { scrollTo(0, 0); setIsOpen(false) }}
-    to='/ask-question'
-    className='text-white hover:bg-white/20 px-4 py-2 rounded-full transition'
+    to="/questions"
+    className={`transition-transform group hover:scale-105 ${
+      location.pathname === '/questions' ? 'text-blue-400 font-bold' : 'hover:text-blue-400'
+    }`}
   >
-    Ask new question
+    Questionnaire
   </Link>
-
+  <Link
+    to="/ask-question"
+    className={`transition-transform group hover:scale-105 ${
+      location.pathname === '/ask-question' ? 'text-blue-400 font-bold' : 'hover:text-blue-400'
+    }`}
+  >
+    Ask Question
+  </Link>
 </div>
 
-    <div className='flex items-center gap-8'>
-        {
-            !user ? (
-                <button onClick={openSignIn} className='px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer'>Login</button>
-            ) : (
-                <UserButton>
-                </UserButton>
-            )
-        }
-        
+
+    {/* Right: User/Login + Mobile Menu */}
+    <div className="flex items-center gap-4">
+      {!user ? (
+        <button onClick={openSignIn} className="px-4 py-1.5 sm:px-6 sm:py-2 bg-blue-400 text-white rounded-full font-semibold hover:bg-blue-400-dull transition transform hover:scale-105">
+          Login
+        </button>
+      ) : (
+        <UserButton />
+      )}
+      {/* Mobile Menu Icon */}
+      <MenuIcon className="md:hidden w-8 h-8 text-white cursor-pointer" onClick={() => setIsOpen(!isOpen)} />
     </div>
+  </div>
 
-    
-    <MenuIcon className='max-md:ml-4 md:hidden w-8 h-8 cursor-pointer' onClick={()=> setIsOpen(!isOpen)}/>
-
+  {/* Mobile Nav Drawer */}
+  <div className={`fixed top-0 right-0 h-screen w-3/4 max-w-xs bg-black/90 z-40 transition-transform duration-300 ease-in-out transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} md:hidden`}>
+    <XIcon className="absolute top-6 right-6 w-6 h-6 text-white cursor-pointer" onClick={() => setIsOpen(false)} />
+    <div className="flex flex-col items-center justify-center gap-8 pt-20">
+      <Link to="/" onClick={() => setIsOpen(false)} className="text-white hover:text-blue-400 transition-transform hover:scale-105">Home</Link>
+      <Link to="/questions" onClick={() => setIsOpen(false)} className="text-white hover:text-blue-400 transition-transform hover:scale-105">Questionnaire</Link>
+      <Link to="/ask-question" onClick={() => setIsOpen(false)} className="text-white hover:text-blue-400 transition-transform hover:scale-105">Ask Question</Link>
     </div>
-  )
-}
+  </div>
+</div>
 
-export default Navbar
+  );
+};
+
+export default Navbar;

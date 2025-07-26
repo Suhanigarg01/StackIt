@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.33.0",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.10.37",
     "lucide-react": "^0.525.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

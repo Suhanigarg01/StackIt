@@ -1,131 +1,178 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { useUser, useSignIn } from '@clerk/clerk-react'
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useUser, useSignIn, useAuth } from '@clerk/clerk-react';
 
 export default function QuestionDetail() {
-  const { id } = useParams()
-  const [question, setQuestion] = useState(null)
-  const [answers, setAnswers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [answerText, setAnswerText] = useState('')
-  const { user } = useUser()
-  const { signIn } = useSignIn()
+  const { id } = useParams();
+  const [question, setQuestion] = useState(null);
+  const [answers, setAnswers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [answerText, setAnswerText] = useState('');
+  const { user } = useUser();
+  const { signIn } = useSignIn();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`http://localhost:5050/api/questions/${id}`)
-        const data = await res.json()
-        setQuestion(data.question)
-        setAnswers(data.answers)
+        const res = await fetch(`http://localhost:5050/api/questions/${id}`);
+        const data = await res.json();
+        setQuestion(data.question);
+        setAnswers(data.answers);
       } catch (err) {
-        console.error('Failed to fetch question details', err)
+        console.error('Failed to fetch question details', err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-
-    fetchData()
-  }, [id])
+    fetchData();
+  }, [id]);
 
   const handleLogin = () => {
     if (!user) {
-      document.getElementById('clerk-sign-in-button')?.click()
+      document.getElementById('clerk-sign-in-button')?.click();
     }
-  }
+  };
 
   const submitAnswer = async () => {
-    if (!user) return handleLogin()
+    if (!user) return handleLogin();
 
     try {
+      const token = await getToken();
       const res = await fetch('http://localhost:5050/api/answers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           content: answerText,
           questionId: id,
-          userId: user.id,
         }),
-      })
-      const data = await res.json()
-      setAnswers([data.answer, ...answers])
-      setAnswerText('')
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        console.error('Failed to submit answer:', data.error);
+        return;
+      }
+
+      setAnswers([data.answer, ...answers]);
+      setAnswerText('');
     } catch (err) {
-      console.error('Failed to submit answer:', err)
+      console.error('Failed to submit answer:', err);
     }
-  }
+  };
 
   const vote = async (answerId, type) => {
-    if (!user) return handleLogin()
+    if (!user) return handleLogin();
 
     try {
-      const res = await fetch(`http://localhost:5050/api/answers/${answerId}/${type}`, {
-        method: 'POST',
-      })
-      const data = await res.json()
+      const token = await getToken();
+      const res = await fetch(
+        `http://localhost:5050/api/answers/${answerId}/${type}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      setAnswers(prev =>
-        prev.map(a =>
+      const data = await res.json();
+      if (data.error) {
+        console.error('Failed to vote:', data.error);
+        return;
+      }
+
+      setAnswers((prev) =>
+        prev.map((a) =>
           a._id === answerId
             ? {
                 ...a,
-                upvotes: type === 'upvote' ? a.upvotes + 1 : a.upvotes,
-                downvotes: type === 'downvote' ? a.downvotes + 1 : a.downvotes,
+                upvotes: data.upvotes,
+                downvotes: data.downvotes,
               }
             : a
         )
-      )
+      );
     } catch (err) {
-      console.error('Failed to vote:', err)
+      console.error('Failed to vote:', err);
     }
-  }
+  };
 
-  if (loading) return <div className="text-white p-4">Loading...</div>
-  if (!question) return <div className="text-white p-4">Question not found</div>
+  if (loading) return <div className="text-white p-4">Loading...</div>;
+  if (!question) return <div className="text-white p-4">Question not found</div>;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6 pt-32">
-      <h1 className="text-2xl font-bold mb-4">{question.title}</h1>
-      <p className="mb-4 text-gray-300" dangerouslySetInnerHTML={{ __html: question.description }}></p>
+    <div className="min-h-screen bg-black text-white px-4 pt-32 pb-16">
+      <div className="max-w-4xl mx-auto">
 
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Answers</h2>
-        {answers.length === 0 ? (
-          <p className="text-gray-400">No answers yet.</p>
-        ) : (
-          answers.map((answer) => (
-            <div key={answer._id} className="bg-gray-800 p-4 rounded mb-2">
-              <p className="text-gray-200">{answer.content}</p>
-              <div className="text-sm text-gray-500 mt-2 flex gap-4 items-center">
-                <button onClick={() => vote(answer._id, 'upvote')} className="hover:text-green-400">⬆ {answer.upvotes}</button>
-                <button onClick={() => vote(answer._id, 'downvote')} className="hover:text-red-400">⬇ {answer.downvotes}</button>
+        {/* Question Block */}
+        <div className="mb-10 bg-[#121212] p-8 rounded-3xl shadow-[8px_8px_25px_rgba(255,255,255,0.05)]">
+          <h1 className="text-3xl font-bold text-blue-400 mb-4">
+            {question.title}
+          </h1>
+          <div
+            className="text-gray-300 text-lg"
+            dangerouslySetInnerHTML={{ __html: question.description }}
+          ></div>
+        </div>
+
+        {/* Answers */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold text-white mb-4">Answers</h2>
+          {answers.length === 0 ? (
+            <p className="text-gray-500">No answers yet.</p>
+          ) : (
+            answers.map((answer) => (
+              <div
+                key={answer._id}
+                className="bg-[#1c1c1c] border border-gray-800 rounded-2xl p-5 mb-5 shadow hover:shadow-lg transition"
+              >
+                <p className="text-gray-200">{answer.content}</p>
+                <div className="flex gap-4 mt-3 text-sm text-gray-400 items-center">
+                  <button
+                    onClick={() => vote(answer._id, 'upvote')}
+                    className="hover:text-green-400 transition"
+                  >
+                    ⬆ {answer.upvotes}
+                  </button>
+                  <button
+                    onClick={() => vote(answer._id, 'downvote')}
+                    className="hover:text-red-400 transition"
+                  >
+                    ⬇ {answer.downvotes}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
 
-      <div className="bg-gray-800 p-4 rounded">
-        <h3 className="text-lg font-medium mb-2">Your Answer</h3>
-        <textarea
-          rows={5}
-          className="w-full p-2 rounded bg-gray-700 text-white"
-          placeholder="Write your answer..."
-          value={answerText}
-          onChange={(e) => setAnswerText(e.target.value)}
-        ></textarea>
-        <button
-          onClick={submitAnswer}
-          className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded"
-        >
-          Submit Answer
-        </button>
-      </div>
+        {/* Your Answer Form */}
+        <div className="bg-[#121212] p-8 rounded-3xl shadow-[6px_6px_20px_rgba(255,255,255,0.05)]">
+          <h3 className="text-xl font-medium mb-3">Your Answer</h3>
+          <textarea
+            rows={5}
+            className="w-full p-4 rounded-xl bg-[#1f1f1f] border border-gray-700 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Write your answer..."
+            value={answerText}
+            onChange={(e) => setAnswerText(e.target.value)}
+          ></textarea>
+          <button
+            onClick={submitAnswer}
+            className="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium px-5 py-2 rounded-full transition-all hover:scale-105"
+          >
+            Submit Answer
+          </button>
+        </div>
 
-      {/* Clerk fallback */}
-      <div style={{ display: 'none' }}>
-        <button id="clerk-sign-in-button" onClick={() => signIn?.()}></button>
+        {/* Clerk fallback */}
+        <div style={{ display: 'none' }}>
+          <button id="clerk-sign-in-button" onClick={() => signIn?.()}></button>
+        </div>
       </div>
     </div>
-  )
+  );
 }
